@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { X, Loader2 } from 'lucide-react';
 import { api } from '../api/client';
+import type { Automation } from '../api/client';
 import { Button } from './Button';
 
 interface Props {
@@ -33,9 +34,9 @@ export function PlateAutomationModal({ isOpen, onClose, printerId, initial = nul
     setEndAfter(initial?.end_code_after ?? '');
   }, [isOpen, initial]);
 
-  const createMut = useMutation((data: Partial<Automation>) => api.createAutomation(printerId, data));
-  const updateMut = useMutation((args: { id: number; data: Partial<Automation> }) => api.updateAutomation(args.id, args.data));
-  const deleteMut = useMutation((id: number) => api.deleteAutomation(id));
+  const createMut = useMutation<Automation, Error, Partial<Automation>>((data: Partial<Automation>) => api.createAutomation(printerId, data));
+  const updateMut = useMutation<Automation, Error, { id: number; data: Partial<Automation> }>((args: { id: number; data: Partial<Automation> }) => api.updateAutomation(args.id, args.data));
+  const deleteMut = useMutation<void, Error, number>((id: number) => api.deleteAutomation(id));
 
   const isAllBlank = () => {
     return [startCode, startDetect, startAfter, endCode, endDetect, endAfter].every(s => !s || s.trim() === '');

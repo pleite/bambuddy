@@ -3695,9 +3695,9 @@ function PrinterCard({
           onClose={() => setShowPlateAutomationModal(false)}
           printerId={printer.id}
           initial={plateAutomationInitial}
-          onSaved={() => {
-            queryClient.invalidateQueries(['printers']);
-            queryClient.invalidateQueries(['printer', printer.id]);
+            onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ['printers'] });
+            queryClient.invalidateQueries({ queryKey: ['printer', printer.id] });
           }}
         />
       )}
