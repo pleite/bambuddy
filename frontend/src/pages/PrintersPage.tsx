@@ -1783,7 +1783,7 @@ function PrinterCard({
 
   // Plate automation setting mutation (scaffold)
   const plateAutomationMutation = useMutation({
-    mutationFn: (enabled: boolean) => (api as any).updatePrinter(printer.id, { plate_automation_enabled: enabled }),
+    mutationFn: (enabled: boolean) => api.updatePrinter(printer.id, { plate_automation_enabled: enabled }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['printers'] });
       showToast(plateAutomationMutation.variables ? t('printers.toast.automationEnabled') : t('printers.toast.automationDisabled'));
@@ -2801,7 +2801,7 @@ function PrinterCard({
                                 // Get saved slot preset mapping (for user-configured slots)
                                 const slotPreset = slotPresets?.[globalTrayId];
 
-                                // Fill level fallback chain: AMS remain → Spoolman → Inventory spool
+                                // Fill level fallback chain: Spoolman → Inventory → AMS remain
                                 const trayTag = tray?.tray_uuid?.toUpperCase();
                                 const linkedSpool = trayTag ? linkedSpools?.[trayTag] : undefined;
                                 const spoolmanFill = getSpoolmanFillLevel(linkedSpool);
@@ -2813,12 +2813,11 @@ function PrinterCard({
                                   }
                                   return null;
                                 })();
-                                const effectiveFill = hasFillLevel && tray.remain > 0
-                                  ? tray.remain
-                                  : (spoolmanFill ?? inventoryFill ?? (hasFillLevel ? tray.remain : null));
-                                const fillSource = (hasFillLevel && tray.remain === 0 && (spoolmanFill !== null || inventoryFill !== null))
-                                  ? (spoolmanFill !== null ? 'spoolman' as const : 'inventory' as const)
-                                  : 'ams' as const;
+                                const effectiveFill = spoolmanFill ?? inventoryFill ?? (hasFillLevel ? tray.remain : null);
+                                const fillSource = spoolmanFill !== null ? 'spoolman' as const
+                                  : inventoryFill !== null ? 'inventory' as const
+                                  : hasFillLevel ? 'ams' as const
+                                  : undefined;
 
                                 // Build filament data for hover card
                                 const filamentData = tray?.tray_type ? {
@@ -2855,7 +2854,7 @@ function PrinterCard({
                                     </div>
                                     {/* Fill bar */}
                                     <div className="mt-1 h-1.5 bg-black/30 rounded-full overflow-hidden">
-                                      {effectiveFill !== null && effectiveFill >= 0 && tray ? (
+                                      {effectiveFill !== null && effectiveFill >= 0 && tray && (
                                         <div
                                           className="h-full rounded-full transition-all"
                                           style={{
@@ -2863,9 +2862,7 @@ function PrinterCard({
                                             backgroundColor: getFillBarColor(effectiveFill),
                                           }}
                                         />
-                                      ) : tray?.tray_type ? (
-                                        <div className="h-full w-full rounded-full bg-white/50 dark:bg-gray-500/40" />
-                                      ) : null}
+                                      )}
                                     </div>
                                   </div>
                                 );
@@ -3025,7 +3022,7 @@ function PrinterCard({
                         // Get saved slot preset mapping (for user-configured slots)
                         const slotPreset = slotPresets?.[globalTrayId];
 
-                        // Fill level fallback chain: AMS remain → Spoolman → Inventory spool
+                        // Fill level fallback chain: Spoolman → Inventory → AMS remain
                         const htTrayTag = tray?.tray_uuid?.toUpperCase();
                         const htLinkedSpool = htTrayTag ? linkedSpools?.[htTrayTag] : undefined;
                         const htSpoolmanFill = getSpoolmanFillLevel(htLinkedSpool);
@@ -3038,12 +3035,11 @@ function PrinterCard({
                           }
                           return null;
                         })();
-                        const htEffectiveFill = hasFillLevel && tray.remain > 0
-                          ? tray.remain
-                          : (htSpoolmanFill ?? htInventoryFill ?? (hasFillLevel ? tray.remain : null));
-                        const htFillSource = (hasFillLevel && tray.remain === 0 && (htSpoolmanFill !== null || htInventoryFill !== null))
-                          ? (htSpoolmanFill !== null ? 'spoolman' as const : 'inventory' as const)
-                          : 'ams' as const;
+                        const htEffectiveFill = htSpoolmanFill ?? htInventoryFill ?? (hasFillLevel ? tray.remain : null);
+                        const htFillSource = htSpoolmanFill !== null ? 'spoolman' as const
+                          : htInventoryFill !== null ? 'inventory' as const
+                          : hasFillLevel ? 'ams' as const
+                          : undefined;
 
                         // Build filament data for hover card
                         const filamentData = tray?.tray_type ? {
@@ -3081,7 +3077,7 @@ function PrinterCard({
                             </div>
                             {/* Fill bar */}
                             <div className="mt-1 h-1.5 bg-black/30 rounded-full overflow-hidden">
-                              {htEffectiveFill !== null && htEffectiveFill >= 0 ? (
+                              {htEffectiveFill !== null && htEffectiveFill >= 0 && (
                                 <div
                                   className="h-full rounded-full transition-all"
                                   style={{
@@ -3089,9 +3085,7 @@ function PrinterCard({
                                     backgroundColor: getFillBarColor(htEffectiveFill),
                                   }}
                                 />
-                              ) : tray?.tray_type ? (
-                                <div className="h-full w-full rounded-full bg-white/50 dark:bg-gray-500/40" />
-                              ) : null}
+                              )}
                             </div>
                           </div>
                         );
@@ -3277,7 +3271,13 @@ function PrinterCard({
                           <div className={`grid ${status.vt_tray.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5`}>
                             {[...status.vt_tray].sort((a, b) => (a.id ?? 254) - (b.id ?? 254)).map((extTray) => {
                               const extTrayId = extTray.id ?? 254;
-                              const isExtActive = effectiveTrayNow === extTrayId;
+                              // On dual-nozzle (H2C/H2D), tray_now=254 means "external spool"
+                              // generically — use active_extruder to determine L vs R:
+                              // extruder 1=left → Ext-L (id=254), extruder 0=right → Ext-R (id=255)
+                              const isExtActive = isDualNozzle && effectiveTrayNow === 254
+                                ? (extTrayId === 254 && status.active_extruder === 1) ||
+                                  (extTrayId === 255 && status.active_extruder === 0)
+                                : effectiveTrayNow === extTrayId;
                               const slotTrayId = extTrayId - 254; // 0 or 1
                               const extLabel = isDualNozzle
                                 ? (extTrayId === 254 ? t('printers.extL') : t('printers.extR'))
@@ -3296,7 +3296,12 @@ function PrinterCard({
                                 }
                                 return null;
                               })();
-                              const extEffectiveFill = extSpoolmanFill ?? extInventoryFill ?? null;
+                              const extHasFillLevel = extTray.tray_type && extTray.remain >= 0;
+                              const extEffectiveFill = extSpoolmanFill ?? extInventoryFill ?? (extHasFillLevel ? extTray.remain : null);
+                              const extFillSource = extSpoolmanFill !== null ? 'spoolman' as const
+                                : extInventoryFill !== null ? 'inventory' as const
+                                : extHasFillLevel ? 'ams' as const
+                                : undefined;
 
                               const extFilamentData = {
                                 vendor: (isBambuLabSpool(extTray) ? 'Bambu Lab' : 'Generic') as 'Bambu Lab' | 'Generic',
@@ -3307,9 +3312,7 @@ function PrinterCard({
                                 fillLevel: extEffectiveFill,
                                 trayUuid: extTray.tray_uuid || null,
                                 tagUid: extTray.tag_uid || null,
-                                fillSource: extSpoolmanFill !== null ? 'spoolman' as const
-                                  : extInventoryFill !== null ? 'inventory' as const
-                                  : undefined,
+                                fillSource: extFillSource,
                               };
 
                               const isEmpty = !extTray.tray_type;
@@ -3327,7 +3330,7 @@ function PrinterCard({
                                     {extTray.tray_type || '—'}
                                   </div>
                                   <div className="mt-1 h-1.5 bg-black/30 rounded-full overflow-hidden">
-                                    {extEffectiveFill !== null && extEffectiveFill >= 0 && !isEmpty ? (
+                                    {extEffectiveFill !== null && extEffectiveFill >= 0 && !isEmpty && (
                                       <div
                                         className="h-full rounded-full transition-all"
                                         style={{
@@ -3335,9 +3338,7 @@ function PrinterCard({
                                           backgroundColor: getFillBarColor(extEffectiveFill),
                                         }}
                                       />
-                                    ) : !isEmpty ? (
-                                      <div className="h-full w-full rounded-full bg-white/50 dark:bg-gray-500/40" />
-                                    ) : null}
+                                    )}
                                   </div>
                                   {extLabel && <div className="text-[7px] text-white/40 mt-0.5 truncate">{extLabel}</div>}
                                 </div>
