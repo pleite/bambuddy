@@ -3633,7 +3633,7 @@ function PrinterCard({
                   onClick={handleTogglePlateAutomation}
                   disabled={!status?.connected || plateAutomationMutation.isPending || !hasPermission('printers:update')}
                   title={!hasPermission('printers:update') ? t('printers.plateAutomation.noPermission') : (printer.plate_automation_enabled ? t('printers.plateAutomation.enabledClick') : t('printers.plateAutomation.disabledClick'))}
-                  className={`${(printer as any).plate_automation_enabled ? "!border-green-500 !text-green-400 hover:!bg-green-500/20" : ""}`}
+                  className={`!rounded-r-none !border-r-0 ${printer.plate_automation_enabled ? "!border-green-500 !text-green-400 hover:!bg-green-500/20" : ""}`}
                 >
                   {plateAutomationMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
