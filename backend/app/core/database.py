@@ -105,6 +105,7 @@ async def init_db():
         spoolbuddy_device,
         user,
         virtual_printer,
+        automation,
     )
 
     async with engine.begin() as conn:
