@@ -1864,7 +1864,7 @@ function PrinterCard({
 
   // Toggle plate automation enabled/disabled
   const handleTogglePlateAutomation = () => {
-    plateAutomationMutation.mutate(!((printer as any).plate_automation_enabled));
+    plateAutomationMutation.mutate(!(printer.plate_automation_enabled));
   };
 
   // Open plate detection management modal (for calibration/references)
@@ -3607,14 +3607,14 @@ function PrinterCard({
               </div>
               
               {/* Plate automation toggle (simple on/off) */}
-              <div className={`inline-flex rounded-md ${(printer as any).plate_automation_enabled ? 'ring-1 ring-green-500' : ''} ml-2`}>
+              <div className={`inline-flex rounded-md ${printer.plate_automation_enabled ? 'ring-1 ring-green-500' : ''} ml-2`}>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleTogglePlateAutomation}
                   disabled={!status?.connected || plateAutomationMutation.isPending || !hasPermission('printers:update')}
-                  title={!hasPermission('printers:update') ? t('printers.plateAutomation.noPermission') : ((printer as any).plate_automation_enabled ? t('printers.plateAutomation.enabledClick') : t('printers.plateAutomation.disabledClick'))}
-                  className={`${(printer as any).plate_automation_enabled ? "!border-green-500 !text-green-400 hover:!bg-green-500/20" : ""}`}
+                  title={!hasPermission('printers:update') ? t('printers.plateAutomation.noPermission') : (printer.plate_automation_enabled ? t('printers.plateAutomation.enabledClick') : t('printers.plateAutomation.disabledClick'))}
+                  className={`${printer.plate_automation_enabled ? "!border-green-500 !text-green-400 hover:!bg-green-500/20" : ""}`}
                 >
                   {plateAutomationMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
