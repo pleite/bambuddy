@@ -1563,6 +1563,29 @@ function PrinterCard({
     return types;
   }, [status?.ams, status?.vt_tray]);
 
+  // Collect loaded filament type+color pairs for queue widget override matching
+  // Format: "TYPE:rrggbb" (e.g., "PETG:ffffff") — mirrors backend _count_override_color_matches()
+  const loadedFilaments = useMemo(() => {
+    const filaments = new Set<string>();
+    if (status?.ams) {
+      for (const ams of status.ams) {
+        for (const tray of ams.tray || []) {
+          if (tray.tray_type && tray.tray_color) {
+            const color = tray.tray_color.replace('#', '').toLowerCase().slice(0, 6);
+            filaments.add(`${tray.tray_type.toUpperCase()}:${color}`);
+          }
+        }
+      }
+    }
+    for (const vt of status?.vt_tray ?? []) {
+      if (vt.tray_type && vt.tray_color) {
+        const color = vt.tray_color.replace('#', '').toLowerCase().slice(0, 6);
+        filaments.add(`${vt.tray_type.toUpperCase()}:${color}`);
+      }
+    }
+    return filaments;
+  }, [status?.ams, status?.vt_tray]);
+
   // Fetch cloud filament info for tooltips (name includes color, also has K value)
   const { data: filamentInfo } = useQuery({
     queryKey: ['filamentInfo', trayInfoIds],
@@ -2527,7 +2550,7 @@ function PrinterCard({
                 </div>
 
                 {/* Queue Widget - always visible when there are pending items */}
-                <PrinterQueueWidget printerId={printer.id} printerModel={printer.model} printerState={status.state} plateCleared={status.plate_cleared} plateAutomation={printer.plate_automation_enabled} loadedFilamentTypes={loadedFilamentTypes} />
+                <PrinterQueueWidget printerId={printer.id} printerModel={printer.model} printerState={status.state} plateCleared={status.plate_cleared} plateAutomation={printer.plate_automation_enabled} loadedFilamentTypes={loadedFilamentTypes} loadedFilaments={loadedFilaments} />
               </>
             )}
 
