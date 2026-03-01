@@ -538,6 +538,16 @@ class BambuMQTTClient:
                 except ValueError:
                     pass  # Ignore unparseable wifi_signal strings; field is non-critical
 
+        # Parse developer LAN mode from top-level "fun" field
+        # Some firmware versions send "fun" at the top level, others inside "print"
+        if "fun" in payload and self.state.developer_mode is None:
+            try:
+                fun_val = payload["fun"]
+                fun_int = fun_val if isinstance(fun_val, int) else int(fun_val, 16)
+                self.state.developer_mode = (fun_int & 0x20000000) == 0
+            except (ValueError, TypeError):
+                pass
+
         if "print" in payload:
             print_data = payload["print"]
 
