@@ -417,6 +417,21 @@ docker compose pull && docker compose up -d
 cd bambuddy && git pull && docker compose up -d --build
 ```
 
+**Daily Beta Builds:**
+
+Beta builds with the latest fixes are published regularly and available as Docker images:
+
+```bash
+# Pull a specific beta version
+docker pull ghcr.io/maziggy/bambuddy:0.2.2b2
+# or from Docker Hub
+docker pull maziggy/bambuddy:0.2.2b2
+```
+
+To get notified about beta releases in Bambuddy, go to **Settings → Updates** and enable **"Include beta versions"**.
+
+> **Note:** Beta builds use version tags like `0.2.2b2` — they are never tagged as `latest`. Your stable installation won't auto-update to a beta unless you explicitly pull a beta tag or enable beta notifications.
+
 **Useful Commands:**
 
 ```bash

@@ -88,6 +88,19 @@ volumes:
 docker compose pull && docker compose up -d
 ```
 
+## Daily Beta Builds
+
+Beta builds with the latest fixes are published regularly:
+
+```bash
+# Pull a specific beta version
+docker pull maziggy/bambuddy:0.2.2b2
+```
+
+To get notified about beta releases in Bambuddy, go to **Settings → Updates** and enable **"Include beta versions"**.
+
+> **Note:** Beta builds use version tags like `0.2.2b2` — they are never tagged as `latest`. Your stable installation won't auto-update to a beta unless you explicitly pull a beta tag or enable beta notifications.
+
 ## Supported Printers
 
 | Series | Models | Status |
