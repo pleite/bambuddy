@@ -1,27 +1,22 @@
 #!/bin/bash
-# Daily beta build: bump version, build Docker, push to registries, create GitHub release
+# Daily beta build: build Docker image, push to registries, create/update GitHub prerelease
 #
 # Usage:
-#   ./docker-publish-daily-beta.sh <version> [--parallel] [--ghcr-only] [--dockerhub-only] [--skip-release]
+#   ./docker-publish-daily-beta.sh [--parallel] [--ghcr-only] [--dockerhub-only] [--skip-release]
 #
 # Examples:
-#   ./docker-publish-daily-beta.sh 0.2.2b2                  # Full release workflow
-#   ./docker-publish-daily-beta.sh 0.2.2b2 --parallel       # Build both archs simultaneously
-#   ./docker-publish-daily-beta.sh 0.2.2b2 --ghcr-only      # Only push to GHCR
-#   ./docker-publish-daily-beta.sh 0.2.2b2 --dockerhub-only # Only push to Docker Hub
-#   ./docker-publish-daily-beta.sh 0.2.2b2 --skip-release   # Build+push without GitHub release
+#   ./docker-publish-daily-beta.sh                  # Full daily beta workflow
+#   ./docker-publish-daily-beta.sh --parallel       # Build both archs simultaneously
+#   ./docker-publish-daily-beta.sh --ghcr-only      # Only push to GHCR
+#   ./docker-publish-daily-beta.sh --dockerhub-only # Only push to Docker Hub
+#   ./docker-publish-daily-beta.sh --skip-release   # Build+push without GitHub release
 #
-# This script performs the full daily beta release workflow:
-#   1. Validate version (must be beta: X.Y.Zb<N>)
-#   2. Bump APP_VERSION in backend/app/core/config.py
-#   3. Update CHANGELOG.md date
-#   4. Git commit + tag
-#   5. Build & push multi-arch Docker images
-#   6. Create GitHub prerelease with changelog notes
-#   7. Verify manifests and release
+# Reads APP_VERSION from backend/app/core/config.py (must be a beta version like 0.2.2b1).
+# Builds and pushes a multi-arch Docker image tagged with that version, overwriting any
+# previous image with the same tag. Optionally creates/updates a GitHub prerelease.
 #
-# Beta versions are never tagged as 'latest'. The in-app update checker uses
-# version string parsing (not GitHub's prerelease flag) to detect betas.
+# Beta versions are never tagged as 'latest'. Users update by pulling the same tag
+# (e.g., docker pull ghcr.io/maziggy/bambuddy:0.2.2b1) or using Watchtower.
 #
 # Prerequisites:
 #   1. Log in to ghcr.io:
@@ -57,7 +52,6 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Parse arguments
-VERSION=""
 PARALLEL=false
 PUSH_GHCR=true
 PUSH_DOCKERHUB=true
@@ -76,112 +70,48 @@ for arg in "$@"; do
         --skip-release)
             SKIP_RELEASE=true
             ;;
+        --help|-h)
+            echo "Usage: $0 [--parallel] [--ghcr-only] [--dockerhub-only] [--skip-release]"
+            echo ""
+            echo "Build and publish a daily beta Docker image using the APP_VERSION from config.py."
+            echo ""
+            echo "Options:"
+            echo "  --parallel       Build both architectures simultaneously"
+            echo "  --ghcr-only      Only push to GitHub Container Registry"
+            echo "  --dockerhub-only Only push to Docker Hub"
+            echo "  --skip-release   Build+push without creating/updating GitHub release"
+            echo "  --help, -h       Show this help"
+            exit 0
+            ;;
         *)
-            if [ -z "$VERSION" ]; then
-                VERSION="$arg"
-            fi
+            echo -e "${RED}Unknown argument: $arg${NC}"
+            echo "Run $0 --help for usage"
+            exit 1
             ;;
     esac
 done
 
+# ============================================================
+# Step 1: Read and validate APP_VERSION
+# ============================================================
+echo -e "${BLUE}[1/4] Validating APP_VERSION...${NC}"
+
+VERSION=$(grep -oP 'APP_VERSION = "\K[^"]+' "$CONFIG_FILE")
+
 if [ -z "$VERSION" ]; then
-    echo -e "${YELLOW}Usage: $0 <version> [--parallel] [--ghcr-only] [--dockerhub-only] [--skip-release]${NC}"
-    echo ""
-    echo "Examples:"
-    echo "  $0 0.2.2b2                  # Full release workflow"
-    echo "  $0 0.2.2b2 --parallel       # Build both archs simultaneously"
-    echo "  $0 0.2.2b2 --ghcr-only      # Only push to GHCR"
-    echo "  $0 0.2.2b2 --dockerhub-only # Only push to Docker Hub"
-    echo "  $0 0.2.2b2 --skip-release   # Build+push without GitHub release"
+    echo -e "${RED}Error: Could not read APP_VERSION from ${CONFIG_FILE}${NC}"
     exit 1
 fi
-
-# ============================================================
-# Step 1: Validate version
-# ============================================================
-echo -e "${BLUE}[1/7] Validating version...${NC}"
 
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+b[0-9]+$ ]]; then
-    echo -e "${RED}Error: Version must be a beta version matching X.Y.Zb<N> (e.g., 0.2.2b2)${NC}"
-    echo "Got: $VERSION"
+    echo -e "${RED}Error: APP_VERSION '${VERSION}' is not a beta version (expected X.Y.Zb<N>)${NC}"
     exit 1
 fi
 
-# Check for clean working tree
-if [ -n "$(git status --porcelain)" ]; then
-    echo -e "${RED}Error: Git working tree is not clean. Commit or stash changes first.${NC}"
-    git status --short
-    exit 1
-fi
-
-echo -e "${GREEN}  Version: ${VERSION} (valid beta)${NC}"
-echo -e "${GREEN}  Working tree: clean${NC}"
+echo -e "${GREEN}  APP_VERSION: ${VERSION}${NC}"
 
 # ============================================================
-# Step 2: Bump APP_VERSION in config.py
-# ============================================================
-echo -e "${BLUE}[2/7] Bumping APP_VERSION...${NC}"
-
-CURRENT_VERSION=$(grep -oP 'APP_VERSION = "\K[^"]+' "$CONFIG_FILE")
-echo "  Current: $CURRENT_VERSION"
-echo "  New:     $VERSION"
-
-sed -i "s/^APP_VERSION = \".*\"/APP_VERSION = \"${VERSION}\"/" "$CONFIG_FILE"
-
-# Verify the replacement
-NEW_VERSION=$(grep -oP 'APP_VERSION = "\K[^"]+' "$CONFIG_FILE")
-if [ "$NEW_VERSION" != "$VERSION" ]; then
-    echo -e "${RED}Error: Failed to update APP_VERSION in ${CONFIG_FILE}${NC}"
-    exit 1
-fi
-echo -e "${GREEN}  Updated ${CONFIG_FILE}${NC}"
-
-# ============================================================
-# Step 3: Update CHANGELOG.md date
-# ============================================================
-echo -e "${BLUE}[3/7] Updating CHANGELOG.md...${NC}"
-
-TODAY=$(date +%Y-%m-%d)
-
-# Check if the changelog already has this version with a date
-if grep -qP "^## \[${VERSION}\] - \d{4}-\d{2}-\d{2}" "$CHANGELOG_FILE"; then
-    echo -e "${YELLOW}  CHANGELOG already has ${VERSION} with a date — skipping${NC}"
-else
-    # Replace "Unreleased" or "Unrelased" (handles typo) for any version header
-    sed -i -E "s/^## \[[^]]+\] - Unreleas?ed$/## [${VERSION}] - ${TODAY}/" "$CHANGELOG_FILE"
-
-    # Verify
-    if grep -q "^## \[${VERSION}\] - ${TODAY}" "$CHANGELOG_FILE"; then
-        echo -e "${GREEN}  Updated to: ## [${VERSION}] - ${TODAY}${NC}"
-    else
-        echo -e "${YELLOW}  Warning: No 'Unreleased' header found to update${NC}"
-        echo "  You may need to manually update CHANGELOG.md"
-    fi
-fi
-
-# ============================================================
-# Step 4: Git commit + tag
-# ============================================================
-echo -e "${BLUE}[4/7] Creating git commit and tag...${NC}"
-
-git add "$CONFIG_FILE" "$CHANGELOG_FILE"
-
-if git diff --cached --quiet; then
-    echo -e "${YELLOW}  No changes to commit (version may already be set)${NC}"
-else
-    git commit -m "Release v${VERSION}"
-    echo -e "${GREEN}  Committed: Release v${VERSION}${NC}"
-fi
-
-if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-    echo -e "${YELLOW}  Tag v${VERSION} already exists — skipping${NC}"
-else
-    git tag "v${VERSION}"
-    echo -e "${GREEN}  Tagged: v${VERSION}${NC}"
-fi
-
-# ============================================================
-# Step 5: Build & push Docker images
+# Step 2: Build & push Docker images
 # ============================================================
 echo ""
 
@@ -189,7 +119,7 @@ echo ""
 CPU_COUNT=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
 echo -e "${GREEN}================================================${NC}"
-echo -e "${GREEN}  Building daily beta Docker image${NC}"
+echo -e "${GREEN}  Daily beta build${NC}"
 echo -e "${GREEN}  Version: ${VERSION}${NC}"
 echo -e "${GREEN}  Platforms: ${PLATFORMS}${NC}"
 echo -e "${GREEN}  CPU cores: ${CPU_COUNT}${NC}"
@@ -227,7 +157,7 @@ if [ "$PUSH_DOCKERHUB" = true ]; then
 fi
 
 # Setup buildx builder if not exists
-echo -e "${BLUE}[5/7] Setting up Docker Buildx and building...${NC}"
+echo -e "${BLUE}[2/4] Setting up Docker Buildx and building...${NC}"
 if ! docker buildx inspect "$BUILDER_NAME" >/dev/null 2>&1; then
     echo "Creating new buildx builder: $BUILDER_NAME (optimized for ${CPU_COUNT} cores)"
     docker buildx create \
@@ -341,14 +271,14 @@ else
 fi
 
 # ============================================================
-# Step 6: Create GitHub release
+# Step 3: Create/update GitHub release
 # ============================================================
 if [ "$SKIP_RELEASE" = true ]; then
-    echo -e "${YELLOW}[6/7] Skipping GitHub release (--skip-release)${NC}"
+    echo -e "${YELLOW}[3/4] Skipping GitHub release (--skip-release)${NC}"
 else
-    echo -e "${BLUE}[6/7] Creating GitHub release...${NC}"
+    echo -e "${BLUE}[3/4] Creating/updating GitHub release...${NC}"
 
-    # Extract release notes from CHANGELOG: content between ## [<version>] and the next ## [
+    # Extract release notes from CHANGELOG: content between ## [<version>] and the next ## [ heading
     CHANGELOG_NOTES=$(sed -n "/^## \[${VERSION}\]/,/^## \[/{/^## \[/!p}" "$CHANGELOG_FILE" | sed '/^$/d; 1{/^$/d}')
 
     if [ -z "$CHANGELOG_NOTES" ]; then
@@ -372,16 +302,17 @@ docker pull maziggy/bambuddy:${VERSION}"
     fi
 
     # Create the release body
+    TODAY=$(date +%Y-%m-%d)
     RELEASE_BODY=$(cat <<EOF
 > [!NOTE]
-> This is a **daily beta build**. It contains the latest fixes and improvements but may have undiscovered issues.
+> This is a **daily beta build** (${TODAY}). It contains the latest fixes and improvements but may have undiscovered issues.
 >
 > **Docker users:** Update by pulling the new image:
 > \`\`\`
 > ${PULL_COMMANDS}
 > \`\`\`
 >
-> **To receive beta update notifications in Bambuddy:** Enable *"Include beta versions"* in Settings → Updates.
+> **Tip:** Use [Watchtower](https://containrrr.dev/watchtower/) to automatically update when new daily builds are pushed.
 
 ---
 
@@ -389,28 +320,38 @@ ${CHANGELOG_NOTES}
 EOF
     )
 
-    # Push the tag to remote
-    echo "  Pushing tag v${VERSION} to remote..."
-    git push origin "v${VERSION}"
+    # Check if release already exists
+    if gh release view "v${VERSION}" >/dev/null 2>&1; then
+        echo "  Updating existing release v${VERSION}..."
+        gh release edit "v${VERSION}" \
+            --title "Daily Beta Build v${VERSION} (${TODAY})" \
+            --prerelease \
+            --notes "$RELEASE_BODY"
+        echo -e "${GREEN}  Updated GitHub release: v${VERSION}${NC}"
+    else
+        echo "  Creating new release v${VERSION}..."
 
-    # Push the commit to remote
-    CURRENT_BRANCH=$(git branch --show-current)
-    echo "  Pushing ${CURRENT_BRANCH} to remote..."
-    git push origin "${CURRENT_BRANCH}"
+        # Ensure the tag exists on remote
+        if ! git ls-remote --tags origin "v${VERSION}" | grep -q "v${VERSION}"; then
+            echo "  Creating and pushing tag v${VERSION}..."
+            if ! git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+                git tag "v${VERSION}"
+            fi
+            git push origin "v${VERSION}"
+        fi
 
-    # Create GitHub release
-    gh release create "v${VERSION}" \
-        --title "Daily Beta Build v${VERSION}" \
-        --prerelease \
-        --notes "$RELEASE_BODY"
-
-    echo -e "${GREEN}  Created GitHub release: v${VERSION}${NC}"
+        gh release create "v${VERSION}" \
+            --title "Daily Beta Build v${VERSION} (${TODAY})" \
+            --prerelease \
+            --notes "$RELEASE_BODY"
+        echo -e "${GREEN}  Created GitHub release: v${VERSION}${NC}"
+    fi
 fi
 
 # ============================================================
-# Step 7: Verify
+# Step 4: Verify
 # ============================================================
-echo -e "${BLUE}[7/7] Verifying...${NC}"
+echo -e "${BLUE}[4/4] Verifying...${NC}"
 
 if [ "$PUSH_GHCR" = true ]; then
     echo -e "${BLUE}GHCR manifest:${NC}"
