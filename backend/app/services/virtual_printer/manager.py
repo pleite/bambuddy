@@ -410,6 +410,8 @@ class VirtualPrinterInstance:
             model=self.model or DEFAULT_VIRTUAL_PRINTER_MODEL,
             name=self.name,
             bind_address=bind_addr,
+            cert_path=cert_path,
+            key_path=key_path,
         )
         self._tasks.append(
             asyncio.create_task(

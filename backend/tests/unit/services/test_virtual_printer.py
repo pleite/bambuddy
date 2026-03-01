@@ -1405,4 +1405,6 @@ class TestBindServer:
                 model="3DPrinter-X1-Carbon",
                 name="Bambuddy",
                 bind_address="192.168.1.50",
+                cert_path=Path("/tmp/cert.pem"),  # nosec B108
+                key_path=Path("/tmp/key.pem"),  # nosec B108
             )
