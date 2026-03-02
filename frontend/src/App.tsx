@@ -28,6 +28,7 @@ import { SpoolBuddyDashboard } from './pages/spoolbuddy/SpoolBuddyDashboard';
 import { SpoolBuddyAmsPage } from './pages/spoolbuddy/SpoolBuddyAmsPage';
 import { SpoolBuddyInventoryPage } from './pages/spoolbuddy/SpoolBuddyInventoryPage';
 import { SpoolBuddySettingsPage } from './pages/spoolbuddy/SpoolBuddySettingsPage';
+import { VirtualKeyboard } from './components/VirtualKeyboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -149,6 +150,7 @@ function App() {
                 </Route>
               </Routes>
             </BrowserRouter>
+            <VirtualKeyboard />
           </AuthProvider>
         </QueryClientProvider>
       </ToastProvider>
