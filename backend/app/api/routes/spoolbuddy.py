@@ -275,6 +275,8 @@ async def update_spool_weight(
     # net weight = total on scale minus empty spool core
     net_filament = max(0, req.weight_grams - spool.core_weight)
     spool.weight_used = max(0, spool.label_weight - net_filament)
+    spool.last_scale_weight = req.weight_grams
+    spool.last_weighed_at = datetime.now(timezone.utc)
     await db.commit()
 
     logger.info(

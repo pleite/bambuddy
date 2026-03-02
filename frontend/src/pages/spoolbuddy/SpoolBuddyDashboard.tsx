@@ -3,7 +3,7 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { SpoolBuddyOutletContext } from '../../components/spoolbuddy/SpoolBuddyLayout';
-import { api, spoolbuddyApi, type InventorySpool } from '../../api/client';
+import { api, type InventorySpool } from '../../api/client';
 import { SpoolIcon } from '../../components/spoolbuddy/SpoolIcon';
 import { SpoolInfoCard, UnknownTagCard } from '../../components/spoolbuddy/SpoolInfoCard';
 import { AssignToAmsModal } from '../../components/spoolbuddy/AssignToAmsModal';
@@ -177,26 +177,6 @@ export function SpoolBuddyDashboard() {
   }, [currentTagId, currentWeight, weightStable, displayedTagId, hiddenTagId]);
 
   // Auto-sync weight once when known spool first detected
-  const [weightUpdatedForSpool, setWeightUpdatedForSpool] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (displayedSpool?.id !== weightUpdatedForSpool) {
-      setWeightUpdatedForSpool(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayedSpool?.id]);
-
-  useEffect(() => {
-    if (displayedSpool && currentTagId && weightStable && weightUpdatedForSpool !== displayedSpool.id) {
-      setWeightUpdatedForSpool(displayedSpool.id);
-      const newWeight = currentWeight !== null ? Math.round(Math.max(0, currentWeight)) : null;
-      if (newWeight !== null) {
-        spoolbuddyApi.updateSpoolWeight(displayedSpool.id, newWeight)
-          .catch((err) => console.error('Failed to update spool weight:', err));
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayedSpool?.id, currentTagId, weightStable]);
 
   const handleCloseSpoolCard = () => {
     setHiddenTagId(displayedTagId);
@@ -205,7 +185,11 @@ export function SpoolBuddyDashboard() {
   const handleLinkTagToSpool = async (spool: InventorySpool) => {
     if (!displayedTagId) return;
     try {
-      await api.updateSpool(spool.id, { tag_uid: displayedTagId });
+      await api.linkTagToSpool(spool.id, {
+        tag_uid: displayedTagId,
+        tag_type: 'generic',
+        data_origin: 'nfc_link',
+      });
       setShowLinkModal(false);
       refetchSpools();
     } catch (e) {

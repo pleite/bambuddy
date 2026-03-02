@@ -1820,6 +1820,8 @@ export interface InventorySpool {
   created_at: string;
   updated_at: string;
   cost_per_kg: number | null;
+  last_scale_weight: number | null;
+  last_weighed_at: string | null;
   k_profiles?: SpoolKProfile[];
 }
 

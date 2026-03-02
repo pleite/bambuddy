@@ -373,6 +373,25 @@ class TestScaleEndpoints:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
+    async def test_update_spool_weight_stores_scale_reading(self, async_client: AsyncClient, spool_factory):
+        """Verify last_scale_weight and last_weighed_at are stored after weight sync."""
+        spool = await spool_factory(label_weight=1000, core_weight=250, weight_used=0)
+
+        resp = await async_client.post(
+            f"{API}/scale/update-spool-weight",
+            json={"spool_id": spool.id, "weight_grams": 750},
+        )
+        assert resp.status_code == 200
+
+        # Fetch the spool via inventory API to verify stored fields
+        spool_resp = await async_client.get(f"/api/v1/inventory/spools/{spool.id}")
+        assert spool_resp.status_code == 200
+        spool_data = spool_resp.json()
+        assert spool_data["last_scale_weight"] == 750
+        assert spool_data["last_weighed_at"] is not None
+
+    @pytest.mark.asyncio
+    @pytest.mark.integration
     async def test_update_spool_weight_missing_spool_404(self, async_client: AsyncClient):
         resp = await async_client.post(
             f"{API}/scale/update-spool-weight",

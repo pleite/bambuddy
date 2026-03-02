@@ -1230,6 +1230,16 @@ async def run_migrations(conn):
     except OperationalError:
         pass  # Already applied
 
+    # Migration: Add SpoolBuddy scale weight tracking columns to spool table
+    try:
+        await conn.execute(text("ALTER TABLE spool ADD COLUMN last_scale_weight INTEGER"))
+    except OperationalError:
+        pass  # Already applied
+    try:
+        await conn.execute(text("ALTER TABLE spool ADD COLUMN last_weighed_at DATETIME"))
+    except OperationalError:
+        pass  # Already applied
+
     # Migration: Add cost tracking fields to spool table
     try:
         await conn.execute(text("ALTER TABLE spool ADD COLUMN cost_per_kg REAL"))

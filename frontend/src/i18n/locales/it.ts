@@ -2454,6 +2454,9 @@ export default {
     spoolRestored: 'Bobina ripristinata',
     deleteConfirm: 'Sei sicuro di voler eliminare questa bobina? Questa azione non può essere annullata.',
     advancedSettings: 'Impostazioni Avanzate',
+    weightCheck: 'Controllo Peso',
+    lastWeighed: 'Ultima pesatura',
+    neverWeighed: 'Mai pesato',
   },
 
   // Timelapse
