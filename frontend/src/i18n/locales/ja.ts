@@ -265,6 +265,8 @@ export default {
       failedToSaveDetectionArea: '検出エリアの保存に失敗しました',
       plateCheckEnabled: 'プレートチェックを有効にしました',
       plateCheckDisabled: 'プレートチェックを無効にしました',
+      automationEnabled: '自動化を有効にしました',
+      automationDisabled: '自動化を無効にしました',
       calibrationSaved: 'キャリブレーションを保存しました！',
       calibrationFailed: 'キャリブレーションに失敗しました',
     },
@@ -400,6 +402,13 @@ export default {
       labelPlaceholder: 'ラベル...',
       clickToEdit: '{{label}} - クリックして編集',
       clickToAddLabel: 'クリックしてラベルを追加',
+    },
+    // Automation
+    plateAutomation: {
+      noPermission: 'プリンタを更新する権限がありません',
+      enabledClick: '自動化が有効 - 無効にするにはクリック',
+      disabledClick: '自動化が無効 - 有効にするにはクリック',
+      manageCustomization: 'プレート自動化のカスタムGCODEを管理',
     },
     fans: {
       partCooling: 'パーツ冷却ファン',
@@ -843,6 +852,7 @@ export default {
     clearPlateSuccess: 'プレートをクリアしました — 次の印刷の準備完了',
     plateReady: 'プレートをクリアしました — 次の印刷の準備完了',
     plateNumber: 'プレート {{index}}',
+    automated: '自動',
     sections: {
       currentlyPrinting: '印刷中',
       queued: 'キュー中',
