@@ -106,6 +106,27 @@ function DeviceOfflineState() {
 }
 
 // --- Main Dashboard ---
+// Helper to get printer status label
+function getPrinterStateLabel(state: string | null, connected: boolean): string {
+  if (!connected) return 'Offline';
+  if (!state || state === 'IDLE') return 'Idle';
+  if (state === 'RUNNING') return 'Printing';
+  if (state === 'PAUSE') return 'Paused';
+  if (state === 'FINISH') return 'Finished';
+  if (state === 'FAILED') return 'Failed';
+  return state;
+}
+
+function getPrinterStateColor(state: string | null, connected: boolean): string {
+  if (!connected) return 'bg-zinc-500';
+  if (!state || state === 'IDLE') return 'bg-bambu-green';
+  if (state === 'RUNNING') return 'bg-bambu-green animate-pulse';
+  if (state === 'PAUSE') return 'bg-amber-500';
+  if (state === 'FINISH') return 'bg-bambu-green';
+  if (state === 'FAILED') return 'bg-red-500';
+  return 'bg-zinc-500';
+}
+
 export function SpoolBuddyDashboard() {
   const { sbState, selectedPrinterId } = useOutletContext<SpoolBuddyOutletContext>();
   const { t } = useTranslation();
@@ -261,6 +282,8 @@ export function SpoolBuddyDashboard() {
   const totalSpools = spools.length;
   const materials = new Set(spools.map((s) => s.material)).size;
   const brands = new Set(spools.filter((s) => s.brand).map((s) => s.brand)).size;
+
+  const statuses = printerStatuses.data ?? {};
 
   return (
     <div className="h-full flex flex-col p-4">
