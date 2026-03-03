@@ -3893,7 +3893,6 @@ function PrinterCard({
           status={status}
           totalPrintHours={maintenanceInfo?.total_print_hours}
           onClose={closePrinterInfo}
-          }}
         />
       )}
       
