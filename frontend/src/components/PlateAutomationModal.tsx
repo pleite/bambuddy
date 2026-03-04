@@ -98,42 +98,42 @@ export function PlateAutomationModal({ isOpen, onClose, printerId, initial = nul
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm text-bambu-gray mb-1">Start Code (multiline)</label>
+            <label className="block text-sm text-bambu-gray mb-1">{t('printers.plateAutomation.startCode')} {t('printers.plateAutomation.startCodeHint')}</label>
             <textarea value={startCode} onChange={e => setStartCode(e.target.value)} className="w-full bg-bambu-dark-secondary p-2 rounded text-sm" rows={6} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-bambu-gray mb-1">Start Detect (single-line)</label>
+              <label className="block text-sm text-bambu-gray mb-1">{t('printers.plateAutomation.startDetect')} {t('printers.plateAutomation.startDetectHint')}</label>
               <input value={startDetect} onChange={e => setStartDetect(e.target.value)} className="w-full bg-bambu-dark-secondary p-2 rounded text-sm" />
             </div>
             <div>
-              <label className="block text-sm text-bambu-gray mb-1">Start After (single-line)</label>
+              <label className="block text-sm text-bambu-gray mb-1">{t('printers.plateAutomation.startAfter')} {t('printers.plateAutomation.startAfterHint')}</label>
               <input value={startAfter} onChange={e => setStartAfter(e.target.value)} className="w-full bg-bambu-dark-secondary p-2 rounded text-sm" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-bambu-gray mb-1">End Code (multiline)</label>
+            <label className="block text-sm text-bambu-gray mb-1">{t('printers.plateAutomation.endCode')} {t('printers.plateAutomation.endCodeHint')}</label>
             <textarea value={endCode} onChange={e => setEndCode(e.target.value)} className="w-full bg-bambu-dark-secondary p-2 rounded text-sm" rows={6} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-bambu-gray mb-1">End Detect (single-line)</label>
+              <label className="block text-sm text-bambu-gray mb-1">{t('printers.plateAutomation.endDetect')} {t('printers.plateAutomation.endDetectHint')}</label>
               <input value={endDetect} onChange={e => setEndDetect(e.target.value)} className="w-full bg-bambu-dark-secondary p-2 rounded text-sm" />
             </div>
             <div>
-              <label className="block text-sm text-bambu-gray mb-1">End After (single-line)</label>
+              <label className="block text-sm text-bambu-gray mb-1">{t('printers.plateAutomation.endAfter')} {t('printers.plateAutomation.endAfterHint')}</label>
               <input value={endAfter} onChange={e => setEndAfter(e.target.value)} className="w-full bg-bambu-dark-secondary p-2 rounded text-sm" />
             </div>
           </div>
         </div>
 
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
           <Button onClick={handleSave}>
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.save')}
           </Button>
         </div>
       </div>

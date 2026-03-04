@@ -444,6 +444,18 @@ export default {
       enabledClick: 'Automatisierung aktiviert - Klicken zum Deaktivieren',
       disabledClick: 'Automatisierung deaktiviert - Klicken zum Aktivieren',
       manageCustomization: 'Plattenautomations-GCODE verwalten',
+      startCode: 'Start-Code',
+      startCodeHint: '(mehrzeilig)',
+      startDetect: 'Start-Erkennung',
+      startDetectHint: '(einzeilig)',
+      startAfter: 'Start nach',
+      startAfterHint: '(einzeilig)',
+      endCode: 'End-Code',
+      endCodeHint: '(mehrzeilig)',
+      endDetect: 'End-Erkennung',
+      endDetectHint: '(einzeilig)',
+      endAfter: 'Ende nach',
+      endAfterHint: '(einzeilig)',
     },
     // Fans
     fans: {

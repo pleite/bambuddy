@@ -435,6 +435,18 @@ export default {
       enabledClick: 'Automazione attivata - Clicca per disattivare',
       disabledClick: 'Automazione disattivata - Clicca per attivare',
       manageCustomization: 'Gestisci GCODE personalizzato per l\'automazione del piatto',
+      startCode: 'Codice di inizio',
+      startCodeHint: '(multilinea)',
+      startDetect: 'Rilevamento inizio',
+      startDetectHint: '(una riga)',
+      startAfter: 'Inizia dopo',
+      startAfterHint: '(una riga)',
+      endCode: 'Codice di fine',
+      endCodeHint: '(multilinea)',
+      endDetect: 'Rilevamento fine',
+      endDetectHint: '(una riga)',
+      endAfter: 'Termina dopo',
+      endAfterHint: '(una riga)',
     },
     // Fans
     fans: {

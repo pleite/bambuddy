@@ -430,6 +430,18 @@ export default {
       enabledClick: '自动化已启用 - 点击禁用',
       disabledClick: '自动化已禁用 - 点击启用',
       manageCustomization: '管理打印板自动化自定义 GCODE',
+      startCode: '开始代码',
+      startCodeHint: '(多行)',
+      startDetect: '开始检测',
+      startDetectHint: '(单行)',
+      startAfter: '开始位置',
+      startAfterHint: '(单行)',
+      endCode: '结束代码',
+      endCodeHint: '(多行)',
+      endDetect: '结束检测',
+      endDetectHint: '(单行)',
+      endAfter: '结束位置',
+      endAfterHint: '(单行)',
     },
     // Fans
     fans: {

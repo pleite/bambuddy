@@ -444,6 +444,18 @@ export default {
       enabledClick: 'Automação ativada - Clique para desativar',
       disabledClick: 'Automação desativada - Clique para ativar',
       manageCustomization: 'Gerenciar GCODE personalizado para automação da mesa',
+      startCode: 'Código inicial',
+      startCodeHint: '(multilinha)',
+      startDetect: 'Detecção inicial',
+      startDetectHint: '(linha única)',
+      startAfter: 'Iniciar após',
+      startAfterHint: '(linha única)',
+      endCode: 'Código final',
+      endCodeHint: '(multilinha)',
+      endDetect: 'Detecção final',
+      endDetectHint: '(linha única)',
+      endAfter: 'Terminar após',
+      endAfterHint: '(linha única)',
     },
     // Fans
     fans: {

@@ -444,6 +444,18 @@ export default {
       enabledClick: 'Automation enabled - Click to disable',
       disabledClick: 'Automation disabled - Click to enable',
       manageCustomization: 'Manage plate automation custom GCODE',
+      startCode: 'Start Code',
+      startCodeHint: '(multiline)',
+      startDetect: 'Start Detect',
+      startDetectHint: '(single-line)',
+      startAfter: 'Start After',
+      startAfterHint: '(single-line)',
+      endCode: 'End Code',
+      endCodeHint: '(multiline)',
+      endDetect: 'End Detect',
+      endDetectHint: '(single-line)',
+      endAfter: 'End After',
+      endAfterHint: '(single-line)',
     },
     // Fans
     fans: {

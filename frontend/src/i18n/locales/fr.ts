@@ -444,6 +444,18 @@ export default {
       enabledClick: 'Automatisation activée - Cliquez pour désactiver',
       disabledClick: 'Automatisation désactivée - Cliquez pour activer',
       manageCustomization: 'Gérer le GCODE personnalisé pour l\'automatisation du plateau',
+      startCode: 'Code de démarrage',
+      startCodeHint: '(multiligne)',
+      startDetect: 'Détection de démarrage',
+      startDetectHint: '(une ligne)',
+      startAfter: 'Démarrer après',
+      startAfterHint: '(une ligne)',
+      endCode: 'Code de fin',
+      endCodeHint: '(multiligne)',
+      endDetect: 'Détection de fin',
+      endDetectHint: '(une ligne)',
+      endAfter: 'Terminer après',
+      endAfterHint: '(une ligne)',
     },
     // Fans
     fans: {
