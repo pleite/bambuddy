@@ -206,3 +206,113 @@ describe('FormData requests include auth header', () => {
     expect(capturedHeaders!.get('Authorization')).toBe('Bearer test-token');
   });
 });
+
+describe('Plate Automation API client', () => {
+  it('getAutomations fetches automation list for printer', async () => {
+    server.use(
+      http.get('/api/v1/printers/:printerId/automation', ({ params }) => {
+        expect(params.printerId).toBe('1');
+        return HttpResponse.json([
+          {
+            id: 10,
+            printer_id: 1,
+            start_code: 'M1002',
+            start_code_detect: '',
+            start_code_after: '',
+            end_code: 'M400',
+            end_code_detect: '',
+            end_code_after: '',
+            created_at: '2026-01-01T00:00:00Z',
+            updated_at: '2026-01-01T00:00:00Z',
+          },
+        ]);
+      })
+    );
+
+    const data = await api.getAutomations(1);
+
+    expect(data).toHaveLength(1);
+    expect(data[0].id).toBe(10);
+    expect(data[0].start_code).toBe('M1002');
+  });
+
+  it('createAutomation sends payload and returns created row', async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+
+    server.use(
+      http.post('/api/v1/printers/:printerId/automation', async ({ params, request }) => {
+        expect(params.printerId).toBe('2');
+        capturedBody = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({
+          id: 11,
+          printer_id: 2,
+          start_code: capturedBody.start_code ?? '',
+          start_code_detect: capturedBody.start_code_detect ?? '',
+          start_code_after: capturedBody.start_code_after ?? '',
+          end_code: capturedBody.end_code ?? '',
+          end_code_detect: capturedBody.end_code_detect ?? '',
+          end_code_after: capturedBody.end_code_after ?? '',
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-01T00:00:00Z',
+        });
+      })
+    );
+
+    const created = await api.createAutomation(2, {
+      start_code: 'G28',
+      end_code: 'M104 S0',
+    });
+
+    expect(capturedBody).toEqual({
+      start_code: 'G28',
+      end_code: 'M104 S0',
+    });
+    expect(created.id).toBe(11);
+    expect(created.start_code).toBe('G28');
+  });
+
+  it('updateAutomation sends patch payload to automation endpoint', async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+
+    server.use(
+      http.patch('/api/v1/automation/:automationId', async ({ params, request }) => {
+        expect(params.automationId).toBe('11');
+        capturedBody = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({
+          id: 11,
+          printer_id: 2,
+          start_code: 'G29',
+          start_code_detect: '',
+          start_code_after: '',
+          end_code: 'M400',
+          end_code_detect: '',
+          end_code_after: '',
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-02T00:00:00Z',
+        });
+      })
+    );
+
+    const updated = await api.updateAutomation(11, { start_code: 'G29' });
+
+    expect(capturedBody).toEqual({ start_code: 'G29' });
+    expect(updated.id).toBe(11);
+    expect(updated.start_code).toBe('G29');
+  });
+
+  it('deleteAutomation calls delete endpoint', async () => {
+    let called = false;
+
+    server.use(
+      http.delete('/api/v1/automation/:automationId', ({ params }) => {
+        expect(params.automationId).toBe('11');
+        called = true;
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    await api.deleteAutomation(11);
+
+    expect(called).toBe(true);
+  });
+});
