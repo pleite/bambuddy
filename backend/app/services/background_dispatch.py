@@ -779,7 +779,7 @@ class BackgroundDispatchService:
             finally:
                 # === NEW: Cleanup modified temp file ===
                 if was_modified:
-                    cleanup_temp_file(modified_file_path)
+                    await asyncio.to_thread(cleanup_temp_file, modified_file_path)
                     logger.debug(
                         "Cleaned up automation temp file for archive %d", job.source_id
                     )
@@ -985,7 +985,7 @@ class BackgroundDispatchService:
             finally:
                 # === NEW: Cleanup modified temp file ===
                 if was_modified:
-                    cleanup_temp_file(modified_file_path)
+                    await asyncio.to_thread(cleanup_temp_file, modified_file_path)
                     logger.debug(
                         "Cleaned up automation temp file for library file %d",
                         job.source_id,

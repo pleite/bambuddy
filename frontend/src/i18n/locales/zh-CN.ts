@@ -278,6 +278,9 @@ export default {
       failedToSaveDetectionArea: '保存检测区域失败',
       plateCheckEnabled: '打印板检查已启用',
       plateCheckDisabled: '打印板检查已禁用',
+      automationEnabled: '自动化已启用',
+      automationDisabled: '自动化已禁用',
+      failedToLoadAutomation: '无法加载自动化配置',
       calibrationSaved: '校准已保存！',
       calibrationFailed: '校准失败',
       rfidRereadInitiated: '已发起 RFID 重新读取',
@@ -420,6 +423,25 @@ export default {
       labelPlaceholder: '标签...',
       clickToEdit: '{{label}} - 点击编辑',
       clickToAddLabel: '点击添加标签',
+    },
+    // Automation
+    plateAutomation: {
+      noPermission: '您没有更新打印机的权限',
+      enabledClick: '自动化已启用 - 点击禁用',
+      disabledClick: '自动化已禁用 - 点击启用',
+      manageCustomization: '管理打印板自动化自定义 GCODE',
+      startCode: '开始代码',
+      startCodeHint: '(多行)',
+      startDetect: '开始检测',
+      startDetectHint: '(单行)',
+      startAfter: '开始位置',
+      startAfterHint: '(单行)',
+      endCode: '结束代码',
+      endCodeHint: '(多行)',
+      endDetect: '结束检测',
+      endDetectHint: '(单行)',
+      endAfter: '结束位置',
+      endAfterHint: '(单行)',
     },
     // Fans
     fans: {
@@ -756,6 +778,7 @@ export default {
     clearPlateSuccess: '打印板已清理 — 准备进行下一个打印',
     plateReady: '打印板已清理 — 准备进行下一个打印',
     plateNumber: '板 {{index}}',
+    automated: '自动化',
     sections: {
       currentlyPrinting: '正在打印',
       queued: '排队中',
