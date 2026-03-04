@@ -294,6 +294,7 @@ export default {
       plateCheckDisabled: 'Plate check disabled',
       automationEnabled: 'Automation enabled',
       automationDisabled: 'Automation disabled',
+      failedToLoadAutomation: 'Failed to load automation configuration',
       calibrationSaved: 'Calibration saved!',
       calibrationFailed: 'Calibration failed',
       rfidRereadInitiated: 'RFID re-read initiated',

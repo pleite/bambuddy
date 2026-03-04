@@ -285,6 +285,7 @@ export default {
       plateCheckDisabled: 'Controllo piatto disabilitato',
       automationEnabled: 'Automazione abilitata',
       automationDisabled: 'Automazione disabilitata',
+      failedToLoadAutomation: 'Impossibile caricare la configurazione dell\'automazione',
       calibrationSaved: 'Calibrazione salvata!',
       calibrationFailed: 'Calibrazione non riuscita',
       rfidRereadInitiated: 'Rilettura RFID avviata',

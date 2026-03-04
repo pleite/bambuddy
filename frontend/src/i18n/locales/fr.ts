@@ -294,6 +294,7 @@ export default {
       plateCheckDisabled: 'Vérification plateau désactivée',
       automationEnabled: 'Automatisation activée',
       automationDisabled: 'Automatisation désactivée',
+      failedToLoadAutomation: 'Échec du chargement de la configuration d\'automatisation',
       calibrationSaved: 'Calibration enregistrée !',
       calibrationFailed: 'Échec de la calibration',
       rfidRereadInitiated: 'Lecture RFID initiée',

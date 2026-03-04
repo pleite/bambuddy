@@ -267,6 +267,7 @@ export default {
       plateCheckDisabled: 'プレートチェックを無効にしました',
       automationEnabled: '自動化を有効にしました',
       automationDisabled: '自動化を無効にしました',
+      failedToLoadAutomation: '自動化設定の読み込みに失敗しました',
       calibrationSaved: 'キャリブレーションを保存しました！',
       calibrationFailed: 'キャリブレーションに失敗しました',
     },
